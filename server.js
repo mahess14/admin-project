@@ -48,7 +48,14 @@ app.use(
   cors({
     origin: (origin, cb) => {
       // no Origin (curl, server-to-server, Netlify proxy) or no list set = allow
-      const ok = !origin || allowed.length === 0 || allowed.includes(origin);
+      // also always allow any *.netlify.app site and localhost, so a typo in FRONTEND_URL can't block login.
+      // (Safe: login uses a Bearer token, not cookies.)
+      const ok =
+        !origin ||
+        allowed.length === 0 ||
+        allowed.includes(origin) ||
+        /^https:\/\/[a-z0-9-]+\.netlify\.app$/i.test(origin) ||
+        /^http:\/\/localhost(:\d+)?$/.test(origin);
       if (!ok) console.warn(`CORS blocked "${origin}". Add it to FRONTEND_URL.`);
       cb(null, ok);
     },
